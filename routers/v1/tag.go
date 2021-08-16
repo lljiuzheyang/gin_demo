@@ -2,13 +2,14 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/astaxie/beego/validation"
 	"github.com/unknwon/com"
 	"gin_demo/pkg/e"
 	"gin_demo/models"
 	"gin_demo/pkg/util"
 	"gin_demo/pkg/setting"
 	"net/http"
+	"encoding/json"
+	"github.com/astaxie/beego/validation"
 	"gin_demo/pkg/logging"
 )
 
@@ -37,10 +38,22 @@ func GetTags(c *gin.Context) {
 
 //新增文章标签
 func AddTag(c *gin.Context) {
-	name := c.Query("name")
-	state := com.StrTo(c.DefaultQuery("state", "0")).MustInt()
-	createdBy := c.Query("created_by")
+	b, _ := c.GetRawData()  // 从c.Request.Body读取请求数据
+	// 定义map或结构体
+	type Request struct {
+		Name string `json:"name"`
+		CreatedBy string `json:"created_by"`
+	}
+
+	var request Request
+	json.Unmarshal(b, &request)
+
+	// 反序列化
+	_ = json.Unmarshal(b, &request)
 	valid := validation.Validation{}
+	name := request.Name
+	createdBy := request.CreatedBy
+	state := 0
 	valid.Required(name, "name").Message("名称不能为空")
 	valid.MaxSize(name, 100, "name").Message("名称最长为100字符")
 	valid.Required(createdBy, "created_by").Message("创建人不能为空")
